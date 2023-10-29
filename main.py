@@ -62,27 +62,25 @@ def gauss_kernel_generator(kernel_size: int, sigma: float) -> np.ndarray:
 
 # main function
 if __name__ == '__main__':
-
-    # read the image in data
-    # rgb image
+    # read the rgb image
     rgb_filename = '1.jpg'
     im = cv2.imread(rgb_filename)
     gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
     
+    # for display purposes
     original = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
     
     
-    # your implementation of the harris corner detector
-    output = Kuwahara_filter(gray, 8, 3, 5.0, 4.0) # all parameters will need to be tweeked
+    output = Kuwahara_filter(gray, 8, 3, 5.0, 4.0) # all parameters will need to be tweaked
     
-    # visualization for your debugging
+    # visualization for debugging
     fig = plt.figure()
-        
+    
     # show input image
     ax = fig.add_subplot(1, 2, 1)
     plt.imshow(original)
     ax.set_title('input image')
-        
+    
     # show output image
     ax = fig.add_subplot(1, 2, 2)
     plt.imshow(output, cmap="gray")

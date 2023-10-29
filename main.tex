@@ -1,0 +1,55 @@
+% CVPR 2022 Paper Template
+% based on the CVPR template provided by Ming-Ming Cheng (https://github.com/MCG-NKU/CVPR_Template)
+% modified and extended by Stefan Roth (stefan.roth@NOSPAMtu-darmstadt.de)
+
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+% Include other packages here, before hyperref.
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+
+\usepackage[pagebackref,breaklinks,colorlinks]{hyperref}
+
+\usepackage[capitalize]{cleveref}
+\crefname{section}{Sec.}{Secs.}
+\Crefname{section}{Section}{Sections}
+\Crefname{table}{Table}{Tables}
+\crefname{table}{Tab.}{Tabs.}
+
+\def\confName{CVPR}
+\def\confYear{2022}
+
+
+\begin{document}
+
+\title{ Evaluating the Viability of the Kuwahara Filter for Historical Photograph Enhancement}
+
+\author{Hudson Apel
+\and
+Esteban Kim
+\and
+Leepy Kc
+\and
+Nina Rao
+}
+\maketitle
+
+\section{Problem Statement}
+Our project aims to apply the Kuwahara filter to early 20th-century photos in order to remove graininess and apply a new artistic style to classic photos taken with old camera technology. In this project, we plan to use the Kuwahara filter to remove the noises and enhance the quality of the images because of the algorithm's ability to denoise an image while preserving its edges.
+
+\section{Approach}
+Our proposed project is application-oriented. We plan to implement Kuwahara’s filter to denoise and enhance early 20th-century black-and-white photos while preserving its edges. The current common usage of Kuwahara’s filter is on medical images such as X-rays, CT scans, and MRI scans because of the algorithm that is used to calculate the most likely candidate of a pixel value using its neighbors. However, we believe that we can extend the application to enhance the quality of early 20th-century photos that naturally contain some noise. We plan to source a set of historical photos that contain some noises or blurriness and then run the images through our implementation of Kuwahara’s filter. Then we will run the same set of images on other well-known edge-preserving algorithms. We will compare the resulting image against the results of the other denoising or edge-preserving algorithms and rate whether the Kuwahara filter can better enhance the photo.
+
+\section{Data}
+We are aiming for a dataset consisting of approximately 5-10 historic/vintage black and white photographs of any subject. The images should contain some level of noise in order to highlight the Kuwahara filter’s denoising and edge-preserving capabilities. We will use a combination of existing datasets from historical archives, image processing experiments, and images we have collected ourselves. To maximize our experiments efforts, we may apply our own noise filter or grayscale filter to any number of images to standardize our dataset with a quantifiable noise level.
+
+\section{Evaluation}
+Since the purpose of the project is to modify artistic pieces, it is hard to create an objective metric. However, an effective metric would be to apply other filters to the image, namely, a Gaussian filter and a bilateral filter, which will smooth the image but not preserve edges, and compare the results. A successful project would produce images that preserve the edges, while creating stylistic differences from the original photos by reducing the noise.
+
+\section{References}
+\href{https://www.researchgate.net/publication/221226072_Edge_and_corner_preserving_smoothing_for_artistic_imaging}{Papari, Giuseppe and Petkov, Nicolai and Campisi, Patrizio. (2007). Edge and corner preserving smoothing for artistic imaging. Proceedings of SPIE - The International Society for Optical Engineering.}
+
+
+\end{document}

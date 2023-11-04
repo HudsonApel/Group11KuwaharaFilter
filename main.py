@@ -1,7 +1,8 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-import math
+import linear_filter
+import bilateral_filter
 
 def Kuwahara_filter( # from section 3
     img: np.uint8, # image
@@ -25,7 +26,7 @@ def Kuwahara_filter( # from section 3
     """
     sizeX, sizeY = img.shape
     
-    g_kernel = gauss_kernel_generator(int(r*2), sigma)
+    g_kernel = linear_filter.gauss_kernel_generator(int(r*2), sigma)
     
     #loop through image, and for each,
     #compute cutting function Vi, (7)
@@ -47,44 +48,50 @@ def Kuwahara_filter( # from section 3
     img_filtered = img_filtered * 255
     img_filtered = np.uint8(img_filtered)
     return img_filtered
-    
-# pulled this from previous homework and modified it a bit, but might need more work for our purposes
-def gauss_kernel_generator(kernel_size: int, sigma: float) -> np.ndarray:
-    # Todo: given sigma(spacial variance) and kernel size, you need to create a kernel_sizexkernel_size gaussian kernel
-    # Please check out the formula in slide 15 of lecture 6 to learn how to compute the gaussian kernel weight: g[k, l] at each position [k, l].
-    kernel_weights = np.zeros((kernel_size, kernel_size))
-    for k in range(kernel_size):
-        for l in range(kernel_size):
-            kernel_weights[k][l] = math.exp(-((k-kernel_size//2)**2 + (l-kernel_size//2)**2) / (2 * (sigma**2))) # might need to add the 1/(2pisigma^2
-
-    return kernel_weights
-
 
 # main function
 if __name__ == '__main__':
     # read the rgb image
-    rgb_filename = '1.jpg'
+    rgb_filename = 'image.jpg'
     im = cv2.imread(rgb_filename)
     gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
     
     # for display purposes
     original = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
-    
-    
-    output = Kuwahara_filter(gray, 8, 3, 5.0, 4.0) # all parameters will need to be tweaked
+
+    # TODO: all parameters will need to be tweaked
+    output = Kuwahara_filter(gray, 8, 3, 5.0, 4.0)
     
     # visualization for debugging
     fig = plt.figure()
     
     # show input image
     ax = fig.add_subplot(1, 2, 1)
-    plt.imshow(original)
+    # plt.imshow(original)
     ax.set_title('input image')
     
     # show output image
     ax = fig.add_subplot(1, 2, 2)
-    plt.imshow(output, cmap="gray")
+    # plt.imshow(output, cmap="gray")
     ax.set_title('resulting image')
 
-    plt.show()
-    cv2.imwrite('results.png', output)
+    # plt.show()
+    cv2.imwrite('results_kuwahara.png', output)
+
+    # Gaussian filtering
+    reduced_image = cv2.resize(gray, (256, 256), interpolation=cv2.INTER_AREA)
+    kernel_size = 7
+    spatial_var = 15  # sigma_s^2
+    gaussian_filter = linear_filter.gauss_kernel_generator(kernel_size, spatial_var)
+    # normalization term
+    gaussian_filter_normalized = gaussian_filter / (np.sum(gaussian_filter) + 1e-16)
+    # apply the filter to process the image: im
+    gaussian_image = linear_filter.linear_local_filtering(reduced_image, gaussian_filter_normalized)
+    cv2.imwrite('result_gaussian.png', gaussian_image)
+
+    # Bilateral filtering
+    spatial_variance = 30
+    intensity_variance = 0.5
+    kernel_size = 7
+    bilateral_image = bilateral_filter.bilateral_filtering(gray, spatial_variance, intensity_variance, kernel_size)
+    cv2.imwrite('results_bilateral.png', bilateral_image)

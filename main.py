@@ -3,11 +3,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import linear_filter
 import bilateral_filter
+import math
 
 def Kuwahara_filter( # from section 3
     img: np.uint8, # image
     N: int, # number of sectors
-    sigma: float, #gaussian strength
+    sigma: float, #gaussian strength (for small values of r, sigma is ussualy best at r + 1-3, for r > 20, sigma ussually better at r * sqrt(r)),
+    # look at wi check and see if it looks like a gradual fade for best results
     r: float, #radius of the regions, perhaps also kernel_size = 2r?
     q: float, # parameter, controls the sharpness of transition
 ) -> np.uint8:
@@ -16,27 +18,67 @@ def Kuwahara_filter( # from section 3
     # convert into grayscale into float for computation
     img = img / 255
     img = img.astype("float32")
-    diameter = int(r*2 + 1)
-    
+    diameter = int(r*2)
+
     #old code that zero padded border, don't know if we will do zero padding
-    half_size = int(r)
+    half_size = int(diameter / 2)
     img_filtered = np.zeros(img.shape) # Placeholder of the filtered image
     #zero-padding
     img = cv2.copyMakeBorder(img, half_size, half_size, half_size, half_size, cv2.BORDER_CONSTANT, 0);
-    
+
     sizeX, sizeY = img.shape
-    
-    g_kernel = linear_filter.gauss_kernel_generator(diameter, sigma)
-    g_kernel_over4 = linear_filter.gauss_kernel_generator(diameter, sigma / 4.0)
-    print(g_kernel)
-    print(g_kernel_over4)
-    
+    g_kernel = linear_filter.gauss_kernel_generator(diameter, sigma) / (2 * math.pi * sigma)
+    g_kernel_over4 = linear_filter.gauss_kernel_generator(diameter, sigma / 16.0) / (2 * math.pi * sigma / 16.0)
+
+
     # precompute V[i] (7) and w[i] (8) according to N and r
     w = np.ndarray((N, diameter, diameter))
+    U = np.zeros((N, diameter, diameter))
+
+    # cut the circle into N chunks, U[i]
+    for x in range(diameter):
+        for y in range(diameter):
+            cx = x - half_size
+            cy = (y - half_size) * -1
+            radians = ((math.atan2(cy, cx) % (2 * math.pi)) + (math.pi / N)) % (2 * math.pi) # radians + shift
+            i = int(N * (radians / (2 * math.pi)))
+            #if cx != 0 or cy != 0:
+            U[i, y, x] = N
+
+    #V is temporary var checking sum of Vi
+    V = 0
+    arr = np.zeros((N))
     for i in range(0, N):
-        # TODO: U[i] = ...
-        # TODO: V[i] = ...
-        w[i] = np.dot(g_kernel, V[i])
+        Vi = U[i] * g_kernel_over4
+        V += np.sum(Vi)
+        w[i] = g_kernel * U[i]
+        arr[i] = np.sum(w[i]) / N
+
+    #check, temporary code
+    print("\ntesting gaussian kernels, should be about 1.00, if not try temporarily increasing radius size to see if it approaches 1")
+    print("sum of gaussian = " + str(np.sum(g_kernel)) )
+    print("sum of gaussian_over_4 = " + str(np.sum(g_kernel_over4)))
+    print("sum of Ui = " + str(np.sum(U)) + ", should be = " + str(diameter*diameter*N))
+
+    print("\n\nThe following are the important ones, if Vi is off try setting sigma equal to or greater than radius")
+    print("sum of Vi = " + str(V) + ", should be = " + str(N))
+    print(str(np.sum(abs((sum(w) / N) - g_kernel))) + ", diff btw (sum of wi) / N vs. gaussian kernel, should be 0.0")
+    print("the following array measures how close the final sums are to expected answer, so this difference should approach 0.00")
+    print(arr - (1.0 / N))
+
+    #check, temporary code
+    for i in range(0, N):
+        imgcheck = U[i] * 255
+        imgcheck = np.uint8(imgcheck)
+        cv2.imwrite(("Ui_check" + str(i) + ".png"), imgcheck)
+        imgcheck = w[i] * 255 / np.max(w)
+        imgcheck = np.uint8(imgcheck)
+        cv2.imwrite(("wi_check" + str(i) + ".png"), imgcheck)
+
+    # REMOVE ME ONCE IMPLEMENTED
+    return img
+
+
     
     #loop through image, and for each,
     for x in range(half_size, sizeX - half_size):
@@ -51,8 +93,8 @@ def Kuwahara_filter( # from section 3
                 s2[i] = np.sum(np.square(img_window) * w[i]) - m[i]**2
             # TODO: compute final output (11)
             #img_filtered[x - half_size, y - half_size] = output based on filtering at img[i, j]
-    
-    
+
+
     # convert back into grayscale
     img_filtered = img # temporary code
     img_filtered = img_filtered * 255
@@ -65,14 +107,15 @@ if __name__ == '__main__':
     rgb_filename = 'image.jpg'
     im = cv2.imread(rgb_filename)
     gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-    
+
     # for display purposes
     original = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
 
     # TODO: all parameters will need to be tweaked
-    output = Kuwahara_filter(gray, 8, 3, 5.0, 4.0)
-    
-    
+    #Kuwahara_filter(img, N: # num sectors, sigma,  r: #radius, q: float # sharpness)
+    output = Kuwahara_filter(gray, 8, 6.0, 6.0, 4.0)
+
+
 
     # Gaussian filtering
     #reduced_image = cv2.resize(gray, (256, 256), interpolation=cv2.INTER_AREA)
@@ -84,15 +127,15 @@ if __name__ == '__main__':
     # apply the filter to process the image: im
     gaussian_image = linear_filter.linear_local_filtering(gray, gaussian_filter_normalized)
     cv2.imwrite('result_gaussian.png', gaussian_image)
-    
+
     # visualization for debugging
     fig = plt.figure()
-    
+
     # show input image
     ax = fig.add_subplot(1, 2, 1)
     plt.imshow(original)
     ax.set_title('input image')
-    
+
     # show output image
     ax = fig.add_subplot(1, 2, 2)
     plt.imshow(output, cmap="gray")

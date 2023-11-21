@@ -13,7 +13,9 @@ def bilateral_filtering(
     img = img.astype("float32")
     img_filtered = np.zeros(img.shape)  # Placeholder of the filtered image
 
-    padded_image = np.pad(img, kernel_size // 2, mode='constant', constant_values=0)
+    half_size = kernel_size // 2
+    padded_image = cv2.copyMakeBorder(img, half_size, half_size, half_size, half_size, cv2.BORDER_REPLICATE);
+    #padded_image = np.pad(img, kernel_size // 2, mode='constant', constant_values=0)
     x, y = img.shape
 
     for i in range(kernel_size // 2, x + kernel_size // 2):

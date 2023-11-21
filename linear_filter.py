@@ -15,7 +15,9 @@ def linear_local_filtering(
     kernel_size = filter_weights.shape[0] # filter kernel size
     sizeX, sizeY = img.shape
 
-    padded_image = np.pad(img, kernel_size // 2, mode='constant', constant_values=0)
+    half_size = kernel_size // 2
+    padded_image = cv2.copyMakeBorder(img, half_size, half_size, half_size, half_size, cv2.BORDER_REPLICATE);
+    #padded_image = np.pad(img, kernel_size // 2, mode='constant', constant_values=0)
 
     for i in range(kernel_size // 2, sizeX - kernel_size // 2):
         for j in range(kernel_size // 2, sizeY - kernel_size // 2):

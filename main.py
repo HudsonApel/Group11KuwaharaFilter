@@ -4,6 +4,25 @@ import matplotlib.pyplot as plt
 import linear_filter
 import bilateral_filter
 import math
+import random
+
+def add_noise(img, probability):
+    output_img = np.zeros(img.shape, np.uint8)
+    threshold = 1 - probability
+
+    for i in range(img.shape[0]):
+        for j in range(img.shape[1]):
+            random_number = random.random()
+
+            if random_number < probability:
+                output_img[i][j] = 0  # set pixel to black
+            elif random_number > threshold:
+                output_img[i][j] = 255  # set pixel to white
+            else:
+                output_img[i][j] = img[i][j] # keep pixel same
+
+    return output_img
+
 
 def Kuwahara_filter( # from section 3
     img: np.uint8, # image
@@ -91,9 +110,11 @@ def Kuwahara_filter( # from section 3
 # main function
 if __name__ == '__main__':
     # read the rgb image
-    rgb_filename = 'image.jpg'
+    rgb_filename = 'image2.jpg'
     im = cv2.imread(rgb_filename)
     gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+    # add standard noise to dataset
+    gray = add_noise(gray,0.05)
     cv2.imwrite('grayscale.png', gray)
 
     # Kuwahara Parameters

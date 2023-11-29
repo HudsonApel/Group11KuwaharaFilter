@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import linear_filter
-import bilateral_filter
 import math
 import random
 

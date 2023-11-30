@@ -97,7 +97,7 @@ def Kuwahara_filter( # from section 3
                 bottom += math.pow(s2[i], -q)
             # compute final output (11)
             if bottom != 0:
-                img_filtered[x - half_size, y - half_size] = top / bottom
+                img_filtered[x - half_size, y - half_size] = max(min((top / bottom), 1.0), 0.0)
             else:
                 img_filtered[x - half_size, y - half_size] = 0.0
 

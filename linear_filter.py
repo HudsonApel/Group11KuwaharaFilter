@@ -8,7 +8,6 @@ def linear_local_filtering(
     img: np.uint8,
     filter_weights: np.ndarray,
 ) -> np.uint8:
-
     img = img / 255
     img = img.astype("float32") # input image
     img_filtered = np.zeros(img.shape) # Placeholder of the filtered image
@@ -17,7 +16,6 @@ def linear_local_filtering(
 
     half_size = kernel_size // 2
     padded_image = cv2.copyMakeBorder(img, half_size, half_size, half_size, half_size, cv2.BORDER_REPLICATE);
-    #padded_image = np.pad(img, kernel_size // 2, mode='constant', constant_values=0)
 
     for i in range(kernel_size // 2, sizeX - kernel_size // 2):
         for j in range(kernel_size // 2, sizeY - kernel_size // 2):

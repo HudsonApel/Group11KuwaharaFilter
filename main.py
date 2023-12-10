@@ -31,7 +31,6 @@ def Kuwahara_filter( # from section 3
     r: float, #radius of the regions,
     q: float, # parameter, controls the sharpness of transition
 ) -> np.uint8:
-
     # convert into grayscale into float for computation
     img = img / 255
     img = img.astype("float32")
@@ -45,7 +44,6 @@ def Kuwahara_filter( # from section 3
     sizeX, sizeY = img.shape
     g_kernel = linear_filter.gauss_kernel_generator(diameter, sigma) / (2 * math.pi * sigma)
     g_kernel_over4 = linear_filter.gauss_kernel_generator(diameter, sigma / 16.0) / (2 * math.pi * sigma / 16.0)
-
 
     # precompute V[i] (7) and w[i] (8) according to N and r
     w = np.ndarray((N, diameter, diameter))
@@ -120,12 +118,9 @@ def run(filename, filetype, N, sigma, r, q, addnoise):
     rgb_filename = 'data/' + filename + "." + filetype
     im = cv2.imread(rgb_filename)
     gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-
     # add salt and pepper noise to dataset
     if addnoise:
         gray = add_noise(gray, 0.02)
-
-
 
     # Kuwahara filter
     output = Kuwahara_filter(gray, N, sigma, r, q)

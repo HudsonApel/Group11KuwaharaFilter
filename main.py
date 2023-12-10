@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import linear_filter
 import math
 import random
+import os
 
 def add_noise(img, probability):
     output_img = np.zeros(img.shape, np.uint8)
@@ -106,42 +107,56 @@ def Kuwahara_filter( # from section 3
     img_filtered = np.uint8(img_filtered)
     return img_filtered
 
-# main function
-if __name__ == '__main__':
-    # read the rgb image
-    rgb_filename = 'image2.jpg'
-    im = cv2.imread(rgb_filename)
-    gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-    # add standard noise to dataset
-    gray = add_noise(gray,0.05)
-    cv2.imwrite('grayscale.png', gray)
 
+def run(filename, filetype, N, sigma, r, q, addnoise):
+    """
     # Kuwahara Parameters
     N = 8 # number of sectors
     sigma = 6.0 # sigma, ussually good between r and r/2
     r = 9.0 # radius of the filter
-    q = 5
+    q = 5 # sharpness, between 3 and 8 for best effect, 0 is essentially guassian blur
+    """
+    # read the rgb image
+    rgb_filename = 'data/' + filename + "." + filetype
+    im = cv2.imread(rgb_filename)
+    gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
 
-    # For comparing Bilateral filtering
-    intensity_variance = 0.3
+    # add salt and pepper noise to dataset
+    if addnoise:
+        gray = add_noise(gray, 0.02)
+
+
 
     # Kuwahara filter
     output = Kuwahara_filter(gray, N, sigma, r, q)
-    cv2.imwrite('results_kuwahara.png', output)
 
     # Gaussian blur
     spatial_var = sigma * sigma  # sigma_s^2
-    kernel_size = int(r)
+    kernel_size = max(int(r), 10)
     if kernel_size % 2 == 0:
         kernel_size += 1
     gaussian = cv2.GaussianBlur(gray, (int(kernel_size), int(kernel_size)), sigma)
-    cv2.imwrite('results_gaussian_cv2.png', gaussian)
 
+    # For comparing Bilateral filtering
+    intensity_variance = 10.0
     # Bilateral filtering
     bilateral = cv2.bilateralFilter(gray, kernel_size, intensity_variance, spatial_var)
-    cv2.imwrite('results_bilateral_cv2.png', bilateral)
 
+    os.makedirs('results/' + filename, exist_ok=True)
+    if addnoise:
+        cv2.imwrite('results/' + filename + '/grayscaled_with_noise.png', gray)
+        cv2.imwrite('results/' + filename + '/Kuwahara_with_noise.png', output)
+        cv2.imwrite('results/' + filename + '/gaussian_with_noise.png', gaussian)
+        cv2.imwrite('results/' + filename + '/bilateral_with_noise.png', bilateral)
+        print('results/' + filename + " with noise")
+    else:
+        cv2.imwrite('results/' + filename + '/grayscaled.png', gray)
+        cv2.imwrite('results/' + filename + '/Kuwahara.png', output)
+        cv2.imwrite('results/' + filename + '/gaussian.png', gaussian)
+        cv2.imwrite('results/' + filename + '/bilateral.png', bilateral)
+        print('results/' + filename)
 
+"""
     # visualization for debugging
     fig = plt.figure()
     # show input image
@@ -161,3 +176,17 @@ if __name__ == '__main__':
     plt.imshow(bilateral, cmap="gray")
     ax.set_title('bilateral filter')
     plt.show()
+"""
+
+# main function
+if __name__ == '__main__':
+    # parameters holds data about the settings to be used for the filters
+    with open("data/parameters.txt") as f:
+        lines = f.readlines()
+
+    for i in range(len(lines)):
+        line = lines[i]
+        numbers = line.split()
+        if numbers[5] == 'False':
+            numbers[5] = False
+        run(numbers[6], numbers[4], int(numbers[0]), float(numbers[1]), float(numbers[2]), float(numbers[3]), bool(numbers[5]))
